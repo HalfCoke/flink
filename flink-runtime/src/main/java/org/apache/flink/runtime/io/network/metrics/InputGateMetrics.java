@@ -21,6 +21,7 @@ package org.apache.flink.runtime.io.network.metrics;
 import org.apache.flink.metrics.Gauge;
 import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.runtime.io.network.partition.consumer.InputChannel;
+import org.apache.flink.runtime.io.network.partition.consumer.LocalInputChannel;
 import org.apache.flink.runtime.io.network.partition.consumer.RemoteInputChannel;
 import org.apache.flink.runtime.io.network.partition.consumer.SingleInputGate;
 
@@ -59,6 +60,10 @@ public class InputGateMetrics {
 				RemoteInputChannel rc = (RemoteInputChannel) channel;
 
 				total += rc.unsynchronizedGetNumberOfQueuedBuffers();
+			} else if (channel instanceof LocalInputChannel){
+				LocalInputChannel rc = (LocalInputChannel) channel;
+
+				total += rc.unsynchronizedGetNumberOfQueuedBuffers();
 			}
 		}
 
@@ -79,6 +84,11 @@ public class InputGateMetrics {
 		for (InputChannel channel : channels) {
 			if (channel instanceof RemoteInputChannel) {
 				RemoteInputChannel rc = (RemoteInputChannel) channel;
+
+				int size = rc.unsynchronizedGetNumberOfQueuedBuffers();
+				min = Math.min(min, size);
+			} else if (channel instanceof LocalInputChannel){
+				LocalInputChannel rc = (LocalInputChannel) channel;
 
 				int size = rc.unsynchronizedGetNumberOfQueuedBuffers();
 				min = Math.min(min, size);
@@ -106,6 +116,11 @@ public class InputGateMetrics {
 
 				int size = rc.unsynchronizedGetNumberOfQueuedBuffers();
 				max = Math.max(max, size);
+			} else if (channel instanceof LocalInputChannel){
+				LocalInputChannel rc = (LocalInputChannel) channel;
+
+				int size = rc.unsynchronizedGetNumberOfQueuedBuffers();
+				max = Math.max(max, size);
 			}
 		}
 
@@ -125,6 +140,12 @@ public class InputGateMetrics {
 		for (InputChannel channel : inputGate.getInputChannels().values()) {
 			if (channel instanceof RemoteInputChannel) {
 				RemoteInputChannel rc = (RemoteInputChannel) channel;
+
+				int size = rc.unsynchronizedGetNumberOfQueuedBuffers();
+				total += size;
+				++count;
+			} else if (channel instanceof LocalInputChannel) {
+				LocalInputChannel rc = (LocalInputChannel) channel;
 
 				int size = rc.unsynchronizedGetNumberOfQueuedBuffers();
 				total += size;

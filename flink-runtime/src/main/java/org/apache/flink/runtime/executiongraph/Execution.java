@@ -724,7 +724,7 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 				return;
 			}
 
-			LOG.info("Deploying {} (attempt #{}) with attempt id {} to {} with allocation id {}", vertex.getTaskNameWithSubtaskIndex(),
+			LOG.info("Deploying {} (id {}) (attempt #{}) with attempt id {} to {} with allocation id {}", vertex.getTaskNameWithSubtaskIndex(),vertex.getID(),
 				attemptNumber, vertex.getCurrentExecutionAttempt().getAttemptId(), getAssignedResourceLocation(), slot.getAllocationId());
 
 			if (taskRestore != null) {
@@ -759,6 +759,7 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 					(ack, failure) -> {
 						if (failure == null) {
 							vertex.notifyCompletedDeployment(this);
+							vertex.setAllocatedSlot(slot);
 						} else {
 							if (failure instanceof TimeoutException) {
 								String taskname = vertex.getTaskNameWithSubtaskIndex() + " (" + attemptId + ')';

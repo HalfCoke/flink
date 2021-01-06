@@ -18,6 +18,8 @@
 package org.apache.flink.runtime.executiongraph;
 
 import org.apache.flink.runtime.execution.ExecutionState;
+import org.apache.flink.runtime.jobmaster.LogicalSlot;
+import org.apache.flink.runtime.scheduler.strategy.ExecutionVertexID;
 import org.apache.flink.runtime.taskmanager.TaskManagerLocation;
 import org.apache.flink.runtime.util.EvictingBoundedList;
 
@@ -38,6 +40,10 @@ public class ArchivedExecutionVertex implements AccessExecutionVertex, Serializa
 
 	private final ArchivedExecution currentExecution;    // this field must never be null
 
+	private LogicalSlot allocatedSlot;
+
+	private ExecutionJobVertex jobVertex;
+
 	// ------------------------------------------------------------------------
 
 	public ArchivedExecutionVertex(ExecutionVertex vertex) {
@@ -45,6 +51,8 @@ public class ArchivedExecutionVertex implements AccessExecutionVertex, Serializa
 		this.priorExecutions = vertex.getCopyOfPriorExecutionsList();
 		this.taskNameWithSubtask = vertex.getTaskNameWithSubtaskIndex();
 		this.currentExecution = vertex.getCurrentExecutionAttempt().archive();
+		this.allocatedSlot = vertex.getAllocatedSlot();
+		this.jobVertex = vertex.getJobVertex();
 	}
 
 	public ArchivedExecutionVertex(
@@ -103,5 +111,21 @@ public class ArchivedExecutionVertex implements AccessExecutionVertex, Serializa
 		} else {
 			throw new IllegalArgumentException("attempt does not exist");
 		}
+	}
+
+	public LogicalSlot getAllocatedSlot() {
+		return this.allocatedSlot;
+	}
+
+	public void setAllocatedSlot(LogicalSlot allocatedSlot) {
+		this.allocatedSlot = allocatedSlot;
+	}
+
+	public ExecutionJobVertex getJobVertex() {
+		return jobVertex;
+	}
+
+	public ExecutionVertexID getID() {
+		return new ExecutionVertexID(jobVertex.getJobVertexId(), subTaskIndex);
 	}
 }
