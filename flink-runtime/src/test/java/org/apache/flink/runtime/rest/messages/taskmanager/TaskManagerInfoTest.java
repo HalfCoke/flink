@@ -22,6 +22,7 @@ import org.apache.flink.runtime.clusterframework.types.ResourceID;
 import org.apache.flink.runtime.clusterframework.types.ResourceProfile;
 import org.apache.flink.runtime.instance.HardwareDescription;
 import org.apache.flink.runtime.rest.messages.RestResponseMarshallingTestBase;
+import org.apache.flink.runtime.taskexecutor.SlotReport;
 import org.apache.flink.runtime.taskexecutor.TaskExecutorMemoryConfiguration;
 
 import java.util.Random;
@@ -70,6 +71,7 @@ public class TaskManagerInfoTest extends RestResponseMarshallingTestBase<TaskMan
 				random.nextLong(),
 				random.nextLong(),
 				random.nextLong(),
-				random.nextLong()));
+				random.nextLong()),
+			new SlotReport().createSlotReportInfo());
 	}
 }

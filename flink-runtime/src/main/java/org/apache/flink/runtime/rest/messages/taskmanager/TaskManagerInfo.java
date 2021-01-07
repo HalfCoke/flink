@@ -25,6 +25,7 @@ import org.apache.flink.runtime.rest.messages.ResourceProfileInfo;
 import org.apache.flink.runtime.rest.messages.ResponseBody;
 import org.apache.flink.runtime.rest.messages.json.ResourceIDDeserializer;
 import org.apache.flink.runtime.rest.messages.json.ResourceIDSerializer;
+import org.apache.flink.runtime.taskexecutor.SlotReportInfo;
 import org.apache.flink.runtime.taskexecutor.TaskExecutor;
 import org.apache.flink.runtime.taskexecutor.TaskExecutorMemoryConfiguration;
 import org.apache.flink.util.Preconditions;
@@ -53,6 +54,8 @@ public class TaskManagerInfo implements ResponseBody, Serializable {
 	public static final String FIELD_NAME_LAST_HEARTBEAT = "timeSinceLastHeartbeat";
 
 	public static final String FIELD_NAME_NUMBER_SLOTS = "slotsNumber";
+
+	public static final String FIELD_NAME_STATUS_SLOTS = "slotsStatus";
 
 	public static final String FIELD_NAME_NUMBER_AVAILABLE_SLOTS = "freeSlots";
 
@@ -100,6 +103,9 @@ public class TaskManagerInfo implements ResponseBody, Serializable {
 	@JsonProperty(FIELD_NAME_MEMORY)
 	private final TaskExecutorMemoryConfiguration memoryConfiguration;
 
+	@JsonProperty(FIELD_NAME_STATUS_SLOTS)
+	private final SlotReportInfo slotStatusReport;
+
 	@JsonCreator
 	public TaskManagerInfo(
 			@JsonDeserialize(using = ResourceIDDeserializer.class) @JsonProperty(FIELD_NAME_RESOURCE_ID) ResourceID resourceId,
@@ -112,7 +118,8 @@ public class TaskManagerInfo implements ResponseBody, Serializable {
 			@JsonProperty(FIELD_NAME_TOTAL_RESOURCE) ResourceProfileInfo totalResource,
 			@JsonProperty(FIELD_NAME_AVAILABLE_RESOURCE) ResourceProfileInfo freeResource,
 			@JsonProperty(FIELD_NAME_HARDWARE) HardwareDescription hardwareDescription,
-			@JsonProperty(FIELD_NAME_MEMORY) TaskExecutorMemoryConfiguration memoryConfiguration) {
+			@JsonProperty(FIELD_NAME_MEMORY) TaskExecutorMemoryConfiguration memoryConfiguration,
+			@JsonProperty(FIELD_NAME_STATUS_SLOTS) SlotReportInfo slotStatusReport) {
 		this.resourceId = Preconditions.checkNotNull(resourceId);
 		this.address = Preconditions.checkNotNull(address);
 		this.dataPort = dataPort;
@@ -124,6 +131,7 @@ public class TaskManagerInfo implements ResponseBody, Serializable {
 		this.freeResource = freeResource;
 		this.hardwareDescription = Preconditions.checkNotNull(hardwareDescription);
 		this.memoryConfiguration = Preconditions.checkNotNull(memoryConfiguration);
+		this.slotStatusReport = slotStatusReport;
 	}
 
 	public TaskManagerInfo(
@@ -137,7 +145,8 @@ public class TaskManagerInfo implements ResponseBody, Serializable {
 			ResourceProfile totalResource,
 			ResourceProfile freeResource,
 			HardwareDescription hardwareDescription,
-			TaskExecutorMemoryConfiguration memoryConfiguration) {
+			TaskExecutorMemoryConfiguration memoryConfiguration,
+			SlotReportInfo slotStatusReport) {
 		this(resourceId,
 			address,
 			dataPort,
@@ -148,7 +157,8 @@ public class TaskManagerInfo implements ResponseBody, Serializable {
 			ResourceProfileInfo.fromResrouceProfile(totalResource),
 			ResourceProfileInfo.fromResrouceProfile(freeResource),
 			hardwareDescription,
-			memoryConfiguration);
+			memoryConfiguration,
+			slotStatusReport);
 	}
 
 	public ResourceID getResourceId() {
@@ -195,6 +205,10 @@ public class TaskManagerInfo implements ResponseBody, Serializable {
 		return memoryConfiguration;
 	}
 
+	public SlotReportInfo getSlotStatusReport() {
+		return slotStatusReport;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -214,7 +228,8 @@ public class TaskManagerInfo implements ResponseBody, Serializable {
 			Objects.equals(resourceId, that.resourceId) &&
 			Objects.equals(address, that.address) &&
 			Objects.equals(hardwareDescription, that.hardwareDescription) &&
-			Objects.equals(memoryConfiguration, that.memoryConfiguration);
+			Objects.equals(memoryConfiguration, that.memoryConfiguration) &&
+			Objects.equals(slotStatusReport, that.slotStatusReport);
 	}
 
 	@Override
@@ -230,6 +245,7 @@ public class TaskManagerInfo implements ResponseBody, Serializable {
 			totalResource,
 			freeResource,
 			hardwareDescription,
-			memoryConfiguration);
+			memoryConfiguration,
+			slotStatusReport);
 	}
 }

@@ -36,6 +36,7 @@ import org.apache.flink.runtime.slots.ResourceCounter;
 import org.apache.flink.runtime.slots.ResourceRequirement;
 import org.apache.flink.runtime.slots.ResourceRequirements;
 import org.apache.flink.runtime.taskexecutor.SlotReport;
+import org.apache.flink.runtime.taskexecutor.SlotReportInfo;
 import org.apache.flink.runtime.taskexecutor.SlotStatus;
 import org.apache.flink.runtime.taskexecutor.TaskExecutorGateway;
 import org.apache.flink.runtime.taskexecutor.exceptions.SlotOccupiedException;
@@ -174,6 +175,11 @@ public class DeclarativeSlotManager implements SlotManager {
 		if (failUnfulfillableRequest) {
 			checkResourceRequirements();
 		}
+	}
+
+	@Override
+	public SlotReportInfo getSlotStatusReport(InstanceID instanceID) {
+		return null;
 	}
 
 	// ---------------------------------------------------------------------------------------------

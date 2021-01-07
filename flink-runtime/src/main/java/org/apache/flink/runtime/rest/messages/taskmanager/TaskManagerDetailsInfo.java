@@ -23,6 +23,8 @@ import org.apache.flink.runtime.clusterframework.types.ResourceID;
 import org.apache.flink.runtime.instance.HardwareDescription;
 import org.apache.flink.runtime.rest.messages.ResourceProfileInfo;
 import org.apache.flink.runtime.rest.messages.json.ResourceIDDeserializer;
+import org.apache.flink.runtime.taskexecutor.SlotReport;
+import org.apache.flink.runtime.taskexecutor.SlotReportInfo;
 import org.apache.flink.runtime.taskexecutor.TaskExecutor;
 import org.apache.flink.runtime.taskexecutor.TaskExecutorMemoryConfiguration;
 import org.apache.flink.util.Preconditions;
@@ -56,7 +58,8 @@ public class TaskManagerDetailsInfo extends TaskManagerInfo {
 			@JsonProperty(FIELD_NAME_AVAILABLE_RESOURCE) ResourceProfileInfo freeResource,
 			@JsonProperty(FIELD_NAME_HARDWARE) HardwareDescription hardwareDescription,
 			@JsonProperty(FIELD_NAME_MEMORY) TaskExecutorMemoryConfiguration memoryConfiguration,
-			@JsonProperty(FIELD_NAME_METRICS) TaskManagerMetricsInfo taskManagerMetrics) {
+			@JsonProperty(FIELD_NAME_METRICS) TaskManagerMetricsInfo taskManagerMetrics,
+			@JsonProperty(FIELD_NAME_STATUS_SLOTS) SlotReportInfo slotStatusReport) {
 		super(
 			resourceId,
 			address,
@@ -68,7 +71,8 @@ public class TaskManagerDetailsInfo extends TaskManagerInfo {
 			totalResource,
 			freeResource,
 			hardwareDescription,
-			memoryConfiguration);
+			memoryConfiguration,
+			slotStatusReport);
 
 		this.taskManagerMetrics = Preconditions.checkNotNull(taskManagerMetrics);
 	}
@@ -86,7 +90,8 @@ public class TaskManagerDetailsInfo extends TaskManagerInfo {
 			taskManagerInfo.getFreeResource(),
 			taskManagerInfo.getHardwareDescription(),
 			taskManagerInfo.getMemoryConfiguration(),
-			taskManagerMetrics);
+			taskManagerMetrics,
+			taskManagerInfo.getSlotStatusReport());
 	}
 
 	@JsonProperty(FIELD_NAME_METRICS)

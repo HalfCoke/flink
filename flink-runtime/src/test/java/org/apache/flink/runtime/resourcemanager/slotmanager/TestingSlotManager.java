@@ -28,6 +28,7 @@ import org.apache.flink.runtime.resourcemanager.WorkerResourceSpec;
 import org.apache.flink.runtime.resourcemanager.registration.TaskExecutorConnection;
 import org.apache.flink.runtime.slots.ResourceRequirements;
 import org.apache.flink.runtime.taskexecutor.SlotReport;
+import org.apache.flink.runtime.taskexecutor.SlotReportInfo;
 
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -146,6 +147,11 @@ public class TestingSlotManager implements SlotManager {
 	@Override
 	public void setFailUnfulfillableRequest(boolean failUnfulfillableRequest) {
 		setFailUnfulfillableRequestConsumer.accept(failUnfulfillableRequest);
+	}
+
+	@Override
+	public SlotReportInfo getSlotStatusReport(InstanceID instanceID) {
+		return null;
 	}
 
 	@Override

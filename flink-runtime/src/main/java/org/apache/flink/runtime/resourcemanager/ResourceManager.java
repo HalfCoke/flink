@@ -581,7 +581,8 @@ public abstract class ResourceManager<WorkerType extends ResourceIDRetrievable>
 					slotManager.getRegisteredResourceOf(taskExecutor.getInstanceID()),
 					slotManager.getFreeResourceOf(taskExecutor.getInstanceID()),
 					taskExecutor.getHardwareDescription(),
-					taskExecutor.getMemoryConfiguration()));
+					taskExecutor.getMemoryConfiguration(),
+					slotManager.getSlotStatusReport(taskExecutor.getInstanceID())));
 		}
 
 		return CompletableFuture.completedFuture(taskManagerInfos);
@@ -607,7 +608,8 @@ public abstract class ResourceManager<WorkerType extends ResourceIDRetrievable>
 				slotManager.getRegisteredResourceOf(instanceId),
 				slotManager.getFreeResourceOf(instanceId),
 				taskExecutor.getHardwareDescription(),
-				taskExecutor.getMemoryConfiguration());
+				taskExecutor.getMemoryConfiguration(),
+				slotManager.getSlotStatusReport(taskExecutor.getInstanceID()));
 
 			return CompletableFuture.completedFuture(taskManagerInfo);
 		}

@@ -37,6 +37,7 @@ import org.apache.flink.runtime.rest.messages.taskmanager.TaskManagerIdPathParam
 import org.apache.flink.runtime.rest.messages.taskmanager.TaskManagerInfo;
 import org.apache.flink.runtime.rest.messages.taskmanager.TaskManagerMessageParameters;
 import org.apache.flink.runtime.rest.messages.taskmanager.TaskManagerMetricsInfo;
+import org.apache.flink.runtime.taskexecutor.SlotReport;
 import org.apache.flink.runtime.taskexecutor.TaskExecutorMemoryConfiguration;
 import org.apache.flink.runtime.testingUtils.TestingUtils;
 import org.apache.flink.util.TestLogger;
@@ -179,7 +180,8 @@ public class TaskManagerDetailsHandlerTest extends TestLogger {
 				0L,
 				0L,
 				0L,
-				0L));
+				0L),
+			new SlotReport().createSlotReportInfo());
 	}
 
 	private static HandlerRequest<EmptyRequestBody, TaskManagerMessageParameters> createRequest() throws HandlerRequestException {
