@@ -17,6 +17,8 @@ public class SlotStatusInfo {
 
 	private static final String FILED_NAME_RESOURCE_PROFILE_INFO = "resource-profile";
 
+	private static final String FILED_NAME_MANAGED_MEM_USED = "managed-used";
+
 	@JsonProperty(FIELD_NAME_SLOT_ID)
 	private final String slotID;
 
@@ -29,16 +31,21 @@ public class SlotStatusInfo {
 	@JsonProperty(FILED_NAME_RESOURCE_PROFILE_INFO)
 	private final ResourceProfileInfo resourceProfileInfo;
 
+	@JsonProperty(FILED_NAME_MANAGED_MEM_USED)
+	private final String managedMemUsed;
+
 	@JsonCreator
 	public SlotStatusInfo(
 		@JsonProperty(FIELD_NAME_SLOT_ID) String slotID,
 		@JsonProperty(FILED_NAME_ALLOCATION_ID) String allocationID,
 		@JsonProperty(FILED_NAME_JOB_ID) String jobID,
-		@JsonProperty(FILED_NAME_RESOURCE_PROFILE_INFO) ResourceProfileInfo resourceProfileInfo) {
+		@JsonProperty(FILED_NAME_RESOURCE_PROFILE_INFO) ResourceProfileInfo resourceProfileInfo,
+		@JsonProperty(FILED_NAME_MANAGED_MEM_USED) String managedMemUsed) {
 		this.slotID = slotID;
 		this.allocationID = allocationID;
 		this.jobID = jobID;
 		this.resourceProfileInfo = resourceProfileInfo;
+		this.managedMemUsed = managedMemUsed;
 	}
 
 	private SlotStatusInfo(SlotStatus slotStatus) {
@@ -46,7 +53,8 @@ public class SlotStatusInfo {
 			slotStatus.getSlotID().toString(),
 			slotStatus.getAllocationID() == null ? "" : slotStatus.getAllocationID().toHexString(),
 			slotStatus.getJobID() == null ? "": slotStatus.getJobID().toHexString(),
-			ResourceProfileInfo.fromResrouceProfile(slotStatus.getResourceProfile())
+			ResourceProfileInfo.fromResrouceProfile(slotStatus.getResourceProfile()),
+			slotStatus.getManagedUsed()
 		);
 	}
 
@@ -70,6 +78,10 @@ public class SlotStatusInfo {
 		return resourceProfileInfo;
 	}
 
+	public String getManagedMemUsed() {
+		return managedMemUsed;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -78,11 +90,12 @@ public class SlotStatusInfo {
 		return Objects.equals(slotID, that.slotID) &&
 			Objects.equals(allocationID, that.allocationID) &&
 			Objects.equals(jobID, that.jobID) &&
-			Objects.equals(resourceProfileInfo, that.resourceProfileInfo);
+			Objects.equals(resourceProfileInfo, that.resourceProfileInfo) &&
+			Objects.equals(managedMemUsed, that.managedMemUsed);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(slotID, allocationID, jobID, resourceProfileInfo);
+		return Objects.hash(slotID, allocationID, jobID, resourceProfileInfo, managedMemUsed);
 	}
 }

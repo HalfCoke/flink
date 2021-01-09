@@ -46,6 +46,8 @@ public class SlotStatus implements Serializable {
 	/** If the slot is allocated, jobId identify which job this slot is allocated to; else, jobId is null. */
 	private final JobID jobID;
 
+	private final String managedUsed;
+
 	public SlotStatus(SlotID slotID, ResourceProfile resourceProfile) {
 		this(slotID, resourceProfile, null, null);
 	}
@@ -54,11 +56,21 @@ public class SlotStatus implements Serializable {
 		SlotID slotID,
 		ResourceProfile resourceProfile,
 		JobID jobID,
-		AllocationID allocationID) {
+		AllocationID allocationID,
+		String managedUsed) {
 		this.slotID = checkNotNull(slotID, "slotID cannot be null");
 		this.resourceProfile = checkNotNull(resourceProfile, "profile cannot be null");
 		this.allocationID = allocationID;
 		this.jobID = jobID;
+		this.managedUsed = managedUsed;
+	}
+
+	public SlotStatus(
+		SlotID slotID,
+		ResourceProfile resourceProfile,
+		JobID jobID,
+		AllocationID allocationID) {
+		this(slotID, resourceProfile, jobID, allocationID,null);
 	}
 
 	/**
@@ -95,6 +107,10 @@ public class SlotStatus implements Serializable {
 	 */
 	public JobID getJobID() {
 		return jobID;
+	}
+
+	public String getManagedUsed(){
+		return managedUsed;
 	}
 
 	@Override

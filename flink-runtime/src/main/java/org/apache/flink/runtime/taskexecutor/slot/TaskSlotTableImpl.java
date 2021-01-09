@@ -238,8 +238,10 @@ public class TaskSlotTableImpl<T extends TaskSlotPayload> implements TaskSlotTab
 					slotId,
 					taskSlot.getResourceProfile(),
 					taskSlot.getJobId(),
-					taskSlot.getAllocationId());
+					taskSlot.getAllocationId(),
+					getTaskManagedUsedMem(taskSlot));
 			} else {
+				// slot丢失了也需要按照数量创建report
 				slotStatus = new SlotStatus(
 					slotId,
 					defaultSlotResourceProfile,
@@ -265,6 +267,17 @@ public class TaskSlotTableImpl<T extends TaskSlotPayload> implements TaskSlotTab
 		final SlotReport slotReport = new SlotReport(slotStatuses);
 
 		return slotReport;
+	}
+
+	private String getTaskManagedUsedMem(TaskSlot<T> taskSlot){
+		if (taskSlot.getAllocationId() != null && taskSlot.getJobId() != null){
+			Set<AllocationID> activeTaskAllocationIds = getActiveTaskSlotAllocationIds();
+			if (activeTaskAllocationIds.contains(taskSlot.getAllocationId())) {
+				MemoryManager memoryManager = taskSlot.getMemoryManager();
+				return String.valueOf(memoryManager.getMemorySize() - memoryManager.availableMemory());
+			}
+		}
+		return null;
 	}
 
 	// ---------------------------------------------------------------------
