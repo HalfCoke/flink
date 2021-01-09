@@ -259,7 +259,7 @@ public class TaskMailboxProcessorTest {
 		mailboxThread.signalStart();
 		mailboxThread.join();
 
-		Assert.assertEquals(0, mailboxProcessor.getIdleTime().getCount());
+		Assert.assertEquals(0, mailboxProcessor.getWaitInputIdleTime().getCount());
 		Assert.assertEquals(totalSwitches, count.get());
 	}
 
@@ -291,7 +291,7 @@ public class TaskMailboxProcessorTest {
 		Thread.sleep(10);
 		mailboxProcessor.getMailboxExecutor(DEFAULT_PRIORITY).execute(suspendedActionRef.get()::resume, "resume");
 		mailboxThread.join();
-		Assert.assertThat(mailboxProcessor.getIdleTime().getCount(), Matchers.greaterThan(0L));
+		Assert.assertThat(mailboxProcessor.getWaitInputIdleTime().getCount(), Matchers.greaterThan(0L));
 	}
 
 	private static MailboxProcessor start(MailboxThread mailboxThread) {
