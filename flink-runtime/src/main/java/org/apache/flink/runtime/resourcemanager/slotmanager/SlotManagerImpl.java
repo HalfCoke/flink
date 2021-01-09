@@ -37,6 +37,7 @@ import org.apache.flink.runtime.resourcemanager.exceptions.UnfulfillableSlotRequ
 import org.apache.flink.runtime.resourcemanager.registration.TaskExecutorConnection;
 import org.apache.flink.runtime.slots.ResourceRequirements;
 import org.apache.flink.runtime.taskexecutor.SlotReport;
+import org.apache.flink.runtime.taskexecutor.SlotReportInfo;
 import org.apache.flink.runtime.taskexecutor.SlotStatus;
 import org.apache.flink.runtime.taskexecutor.TaskExecutorGateway;
 import org.apache.flink.runtime.taskexecutor.exceptions.SlotAllocationException;
@@ -149,6 +150,8 @@ public class SlotManagerImpl implements SlotManager {
 
 	private final SlotManagerMetricGroup slotManagerMetricGroup;
 
+	private final HashMap<InstanceID, SlotReport> slotStatusReport;
+
 	public SlotManagerImpl(
 			ScheduledExecutor scheduledExecutor,
 			SlotManagerConfiguration slotManagerConfiguration,
@@ -183,6 +186,8 @@ public class SlotManagerImpl implements SlotManager {
 		slotRequestTimeoutCheck = null;
 
 		started = false;
+
+		slotStatusReport = new HashMap<>();
 	}
 
 	@Override
@@ -266,6 +271,10 @@ public class SlotManagerImpl implements SlotManager {
 	@VisibleForTesting
 	public int getNumberAssignedPendingTaskManagerSlots() {
 		return (int) pendingSlots.values().stream().filter(slot -> slot.getAssignedPendingSlotRequest() != null).count();
+	}
+
+	public SlotReportInfo getSlotStatusReport(InstanceID instanceID) {
+		return slotStatusReport.get(instanceID) == null ? null : slotStatusReport.get(instanceID).createSlotReportInfo();
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -519,7 +528,7 @@ public class SlotManagerImpl implements SlotManager {
 
 		if (null != taskManagerRegistration) {
 			LOG.debug("Received slot report from instance {}: {}.", instanceId, slotReport);
-
+			slotStatusReport.put(instanceId, slotReport);
 			for (SlotStatus slotStatus : slotReport) {
 				updateSlot(slotStatus.getSlotID(), slotStatus.getAllocationID(), slotStatus.getJobID());
 			}
