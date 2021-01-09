@@ -98,6 +98,8 @@ public class ExecutionVertex implements AccessExecutionVertex, Archiveable<Archi
 
 	private final ArrayList<InputSplit> inputSplits;
 
+	private LogicalSlot allocatedSlot;
+
 	// --------------------------------------------------------------------------------------------
 
 	/**
@@ -178,6 +180,14 @@ public class ExecutionVertex implements AccessExecutionVertex, Archiveable<Archi
 
 	public JobVertexID getJobvertexId() {
 		return this.jobVertex.getJobVertexId();
+	}
+
+	public LogicalSlot getAllocatedSlot() {
+		return this.allocatedSlot;
+	}
+
+	public void setAllocatedSlot(LogicalSlot allocatedSlot) {
+		this.allocatedSlot = allocatedSlot;
 	}
 
 	public String getTaskName() {

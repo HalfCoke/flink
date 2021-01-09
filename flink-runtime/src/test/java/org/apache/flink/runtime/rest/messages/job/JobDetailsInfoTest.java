@@ -90,6 +90,8 @@ public class JobDetailsInfoTest extends RestResponseMarshallingTestBase<JobDetai
 			random.nextLong(),
 			random.nextBoolean());
 
+		Collection<SubtaskInfo> subtaskInfos = new ArrayList<>();
+
 		for (ExecutionState executionState : ExecutionState.values()) {
 			tasksPerState.put(executionState, random.nextInt());
 		}
@@ -103,6 +105,7 @@ public class JobDetailsInfoTest extends RestResponseMarshallingTestBase<JobDetai
 			random.nextLong(),
 			random.nextLong(),
 			tasksPerState,
-			jobVertexMetrics);
+			jobVertexMetrics,
+			subtaskInfos);
 	}
 }

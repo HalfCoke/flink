@@ -25,7 +25,9 @@ import org.apache.flink.runtime.execution.ExecutionState;
 import org.apache.flink.runtime.executiongraph.AccessExecutionGraph;
 import org.apache.flink.runtime.executiongraph.AccessExecutionJobVertex;
 import org.apache.flink.runtime.executiongraph.AccessExecutionVertex;
+import org.apache.flink.runtime.executiongraph.ArchivedExecutionVertex;
 import org.apache.flink.runtime.executiongraph.ExecutionJobVertex;
+import org.apache.flink.runtime.executiongraph.ExecutionVertex;
 import org.apache.flink.runtime.rest.handler.HandlerRequest;
 import org.apache.flink.runtime.rest.handler.RestHandlerException;
 import org.apache.flink.runtime.rest.handler.legacy.ExecutionGraphCache;
@@ -37,6 +39,7 @@ import org.apache.flink.runtime.rest.messages.JobMessageParameters;
 import org.apache.flink.runtime.rest.messages.MessageHeaders;
 import org.apache.flink.runtime.rest.messages.ResponseBody;
 import org.apache.flink.runtime.rest.messages.job.JobDetailsInfo;
+import org.apache.flink.runtime.rest.messages.job.SubtaskInfo;
 import org.apache.flink.runtime.rest.messages.job.metrics.IOMetricsInfo;
 import org.apache.flink.runtime.webmonitor.RestfulGateway;
 import org.apache.flink.runtime.webmonitor.history.ArchivedJson;
@@ -60,6 +63,7 @@ import java.util.concurrent.Executor;
 public class JobDetailsHandler extends AbstractExecutionGraphHandler<JobDetailsInfo, JobMessageParameters> implements JsonArchivist {
 
 	private final MetricFetcher metricFetcher;
+
 
 	public JobDetailsHandler(
 			GatewayRetriever<? extends RestfulGateway> leaderRetriever,
@@ -152,6 +156,7 @@ public class JobDetailsHandler extends AbstractExecutionGraphHandler<JobDetailsI
 		long startTime = Long.MAX_VALUE;
 		long endTime = 0;
 		boolean allFinished = true;
+		Collection<SubtaskInfo> subtaskInfos = new ArrayList<>(ejv.getParallelism());
 
 		for (AccessExecutionVertex vertex : ejv.getTaskVertices()) {
 			final ExecutionState state = vertex.getExecutionState();
@@ -165,6 +170,23 @@ public class JobDetailsHandler extends AbstractExecutionGraphHandler<JobDetailsI
 
 			allFinished &= state.isTerminal();
 			endTime = Math.max(endTime, vertex.getStateTimestamp(state));
+			try{
+				if (vertex instanceof ExecutionVertex){
+					subtaskInfos.add(new SubtaskInfo(
+						((ExecutionVertex) vertex).getID().toString(),
+						((ExecutionVertex) vertex).getAllocatedSlot().getAllocationId().toHexString()
+					));
+				} else if (vertex instanceof ArchivedExecutionVertex){
+					subtaskInfos.add(new SubtaskInfo(
+						((ArchivedExecutionVertex) vertex).getID().toString(),
+						((ArchivedExecutionVertex) vertex).getAllocatedSlot().getAllocationId().toHexString()
+					));
+				}
+			}catch (Exception e){
+				e.printStackTrace();
+				System.out.println("类型转换错误："+vertex.getClass());
+			}
+
 		}
 
 		long duration;
@@ -221,6 +243,7 @@ public class JobDetailsHandler extends AbstractExecutionGraphHandler<JobDetailsI
 			endTime,
 			duration,
 			tasksPerStateMap,
-			jobVertexMetrics);
+			jobVertexMetrics,
+			subtaskInfos);
 	}
 }
