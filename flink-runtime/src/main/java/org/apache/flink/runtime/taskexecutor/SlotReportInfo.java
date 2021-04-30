@@ -3,7 +3,6 @@ package org.apache.flink.runtime.taskexecutor;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonCreator;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -22,10 +21,6 @@ public class SlotReportInfo {
 		slotStatusInfos = slotStatus.stream()
 			.map(SlotStatusInfo::createSlotStatusInfo)
 			.collect(Collectors.toList());
-//		slotStatusInfos = new ArrayList<>();
-//		for (SlotStatus status : slotStatus) {
-//			slotStatusInfos.add(SlotStatusInfo.createSlotStatusInfo(status));
-//		}
 	}
 
 	public List<SlotStatusInfo> getSlotStatusInfos() {

@@ -49,20 +49,32 @@ public class SlotStatus implements Serializable {
      */
     private final JobID jobID;
 
-    public SlotStatus(SlotID slotID, ResourceProfile resourceProfile) {
-        this(slotID, resourceProfile, null, null);
-    }
+	private final String managedUsed;
 
-    public SlotStatus(
-            SlotID slotID,
-            ResourceProfile resourceProfile,
-            JobID jobID,
-            AllocationID allocationID) {
-        this.slotID = checkNotNull(slotID, "slotID cannot be null");
-        this.resourceProfile = checkNotNull(resourceProfile, "profile cannot be null");
-        this.allocationID = allocationID;
-        this.jobID = jobID;
-    }
+	public SlotStatus(SlotID slotID, ResourceProfile resourceProfile) {
+		this(slotID, resourceProfile, null, null);
+	}
+
+	public SlotStatus(
+		SlotID slotID,
+		ResourceProfile resourceProfile,
+		JobID jobID,
+		AllocationID allocationID,
+		String managedUsed) {
+		this.slotID = checkNotNull(slotID, "slotID cannot be null");
+		this.resourceProfile = checkNotNull(resourceProfile, "profile cannot be null");
+		this.allocationID = allocationID;
+		this.jobID = jobID;
+		this.managedUsed = managedUsed;
+	}
+
+	public SlotStatus(
+		SlotID slotID,
+		ResourceProfile resourceProfile,
+		JobID jobID,
+		AllocationID allocationID) {
+		this(slotID, resourceProfile, jobID, allocationID,null);
+	}
 
     /**
      * Get the unique identification of this slot.
@@ -100,14 +112,18 @@ public class SlotStatus implements Serializable {
         return jobID;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+	public String getManagedUsed(){
+		return managedUsed;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 
         SlotStatus that = (SlotStatus) o;
 

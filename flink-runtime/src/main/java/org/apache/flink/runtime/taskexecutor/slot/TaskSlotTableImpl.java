@@ -233,15 +233,20 @@ public class TaskSlotTableImpl<T extends TaskSlotPayload> implements TaskSlotTab
             if (taskSlots.containsKey(i)) {
                 TaskSlot<T> taskSlot = taskSlots.get(i);
 
-                slotStatus =
-                        new SlotStatus(
-                                slotId,
-                                taskSlot.getResourceProfile(),
-                                taskSlot.getJobId(),
-                                taskSlot.getAllocationId());
-            } else {
-                slotStatus = new SlotStatus(slotId, defaultSlotResourceProfile, null, null);
-            }
+				slotStatus = new SlotStatus(
+					slotId,
+					taskSlot.getResourceProfile(),
+					taskSlot.getJobId(),
+					taskSlot.getAllocationId(),
+					getTaskManagedUsedMem(taskSlot));
+			} else {
+				// slot丢失了也需要按照数量创建report
+				slotStatus = new SlotStatus(
+					slotId,
+					defaultSlotResourceProfile,
+					null,
+					null);
+			}
 
             slotStatuses.add(slotStatus);
         }
@@ -264,9 +269,20 @@ public class TaskSlotTableImpl<T extends TaskSlotPayload> implements TaskSlotTab
         return slotReport;
     }
 
-    // ---------------------------------------------------------------------
-    // Slot methods
-    // ---------------------------------------------------------------------
+	private String getTaskManagedUsedMem(TaskSlot<T> taskSlot){
+		if (taskSlot.getAllocationId() != null && taskSlot.getJobId() != null){
+			Set<AllocationID> activeTaskAllocationIds = getActiveTaskSlotAllocationIds();
+			if (activeTaskAllocationIds.contains(taskSlot.getAllocationId())) {
+				MemoryManager memoryManager = taskSlot.getMemoryManager();
+				return String.valueOf(memoryManager.getMemorySize() - memoryManager.availableMemory());
+			}
+		}
+		return null;
+	}
+
+	// ---------------------------------------------------------------------
+	// Slot methods
+	// ---------------------------------------------------------------------
 
     @VisibleForTesting
     @Override
