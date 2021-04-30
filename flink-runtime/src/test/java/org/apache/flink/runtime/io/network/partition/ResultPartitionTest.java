@@ -513,7 +513,7 @@ public class ResultPartitionTest {
         assertNotNull(buffer);
 
         // idle time is zero when there is buffer available.
-        assertEquals(0, resultPartition.getIdleTimeMsPerSecond().getCount());
+        assertEquals(0, resultPartition.getWaitOutputIdleTimeMsPerSecond().getCount());
 
         CountDownLatch syncLock = new CountDownLatch(1);
         final Thread requestThread =
@@ -539,7 +539,7 @@ public class ResultPartitionTest {
         requestThread.join();
 
         Assert.assertThat(
-                resultPartition.getIdleTimeMsPerSecond().getCount(), Matchers.greaterThan(0L));
+                resultPartition.getWaitOutputIdleTimeMsPerSecond().getCount(), Matchers.greaterThan(0L));
         assertNotNull(readView.getNextBuffer().buffer());
     }
 

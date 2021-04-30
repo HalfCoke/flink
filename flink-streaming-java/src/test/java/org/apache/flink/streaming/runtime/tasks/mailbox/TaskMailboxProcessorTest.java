@@ -40,14 +40,17 @@ public class TaskMailboxProcessorTest {
 
     public static final int DEFAULT_PRIORITY = 0;
 
-    @Rule public ExpectedException expectedException = ExpectedException.none();
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     @Test
     public void testRejectIfNotOpen() {
-        MailboxProcessor mailboxProcessor = new MailboxProcessor(controller -> {});
+        MailboxProcessor mailboxProcessor = new MailboxProcessor(controller -> {
+        });
         mailboxProcessor.prepareClose();
         try {
-            mailboxProcessor.getMailboxExecutor(DEFAULT_PRIORITY).execute(() -> {}, "dummy");
+            mailboxProcessor.getMailboxExecutor(DEFAULT_PRIORITY).execute(() -> {
+            }, "dummy");
             Assert.fail("Should not be able to accept runnables if not opened.");
         } catch (RejectedExecutionException expected) {
         }
@@ -56,7 +59,8 @@ public class TaskMailboxProcessorTest {
     @Test
     public void testSubmittingRunnableWithException() throws Exception {
         expectedException.expectMessage("Expected");
-        try (MailboxProcessor mailboxProcessor = new MailboxProcessor(controller -> {})) {
+        try (MailboxProcessor mailboxProcessor = new MailboxProcessor(controller -> {
+        })) {
             final Thread submitThread =
                     new Thread(
                             () -> {
@@ -142,8 +146,7 @@ public class TaskMailboxProcessorTest {
     public void testSignalUnAvailable() throws Exception {
 
         final AtomicInteger counter = new AtomicInteger(0);
-        final AtomicReference<MailboxDefaultAction.Suspension> suspendedActionRef =
-                new AtomicReference<>();
+        final AtomicReference<MailboxDefaultAction.Suspension> suspendedActionRef = new AtomicReference<>();
         final OneShotLatch actionSuspendedLatch = new OneShotLatch();
         final int blockAfterInvocations = 3;
         final int totalInvocations = blockAfterInvocations * 2;
@@ -277,7 +280,7 @@ public class TaskMailboxProcessorTest {
         mailboxThread.signalStart();
         mailboxThread.join();
 
-        Assert.assertEquals(0, mailboxProcessor.getIdleTime().getCount());
+        Assert.assertEquals(0, mailboxProcessor.getWaitInputIdleTime().getCount());
         Assert.assertEquals(totalSwitches, count.get());
     }
 
@@ -316,7 +319,8 @@ public class TaskMailboxProcessorTest {
                 .getMailboxExecutor(DEFAULT_PRIORITY)
                 .execute(suspendedActionRef.get()::resume, "resume");
         mailboxThread.join();
-        Assert.assertThat(mailboxProcessor.getIdleTime().getCount(), Matchers.greaterThan(0L));
+        Assert.assertThat(mailboxProcessor.getWaitInputIdleTime().getCount(),
+                Matchers.greaterThan(0L));
     }
 
     private static MailboxProcessor start(MailboxThread mailboxThread) {

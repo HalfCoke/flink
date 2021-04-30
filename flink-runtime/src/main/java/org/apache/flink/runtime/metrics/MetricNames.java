@@ -66,5 +66,6 @@ public class MetricNames {
         return String.format(IO_CURRENT_INPUT_WATERMARK_PATERN, index);
     }
 
-    public static final String TASK_IDLE_TIME = "idleTimeMs" + SUFFIX_RATE;
+	public static final String TASK_OUTPUT_IDLE_TIME = "outputIdleTimeMs" + SUFFIX_RATE;
+	public static final String TASK_INPUT_IDLE_TIME = "inputIdleTimeMs" + SUFFIX_RATE;
 }

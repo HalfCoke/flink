@@ -91,7 +91,7 @@ public class MailboxProcessor implements Closeable {
 
     private final StreamTaskActionExecutor actionExecutor;
 
-    private Meter idleTime = new MeterView(new SimpleCounter());
+	private Meter waitInputIdleTime = new MeterView(new SimpleCounter());
 
     public MailboxProcessor(MailboxDefaultAction mailboxDefaultAction) {
         this(mailboxDefaultAction, StreamTaskActionExecutor.IMMEDIATE);
@@ -127,7 +127,7 @@ public class MailboxProcessor implements Closeable {
     }
 
     public void initMetric(TaskMetricGroup metricGroup) {
-        idleTime = metricGroup.getIOMetricGroup().getIdleTimeMsPerSecond();
+		waitInputIdleTime = metricGroup.getIOMetricGroup().getWaitInputIdleTimeMsPerSecond();
     }
 
     /** Lifecycle method to close the mailbox for action submission. */
@@ -312,7 +312,7 @@ public class MailboxProcessor implements Closeable {
             if (!maybeMail.isPresent()) {
                 long start = System.currentTimeMillis();
                 maybeMail = Optional.of(mailbox.take(MIN_PRIORITY));
-                idleTime.markEvent(System.currentTimeMillis() - start);
+				waitInputIdleTime.markEvent(System.currentTimeMillis() - start);
             }
             maybeMail.get().run();
             processed = true;
@@ -350,9 +350,9 @@ public class MailboxProcessor implements Closeable {
     }
 
     @VisibleForTesting
-    public Meter getIdleTime() {
-        return idleTime;
-    }
+	public Meter getWaitInputIdleTime() {
+		return waitInputIdleTime;
+	}
 
     @VisibleForTesting
     public boolean hasMail() {
