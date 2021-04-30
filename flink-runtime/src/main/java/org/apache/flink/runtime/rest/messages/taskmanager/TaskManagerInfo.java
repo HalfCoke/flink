@@ -25,6 +25,7 @@ import org.apache.flink.runtime.rest.messages.ResourceProfileInfo;
 import org.apache.flink.runtime.rest.messages.ResponseBody;
 import org.apache.flink.runtime.rest.messages.json.ResourceIDDeserializer;
 import org.apache.flink.runtime.rest.messages.json.ResourceIDSerializer;
+import org.apache.flink.runtime.taskexecutor.SlotReportInfo;
 import org.apache.flink.runtime.taskexecutor.TaskExecutor;
 import org.apache.flink.runtime.taskexecutor.TaskExecutorMemoryConfiguration;
 import org.apache.flink.util.Preconditions;
@@ -52,7 +53,9 @@ public class TaskManagerInfo implements ResponseBody, Serializable {
 
     public static final String FIELD_NAME_NUMBER_SLOTS = "slotsNumber";
 
-    public static final String FIELD_NAME_NUMBER_AVAILABLE_SLOTS = "freeSlots";
+	public static final String FIELD_NAME_STATUS_SLOTS = "slotsStatus";
+
+	public static final String FIELD_NAME_NUMBER_AVAILABLE_SLOTS = "freeSlots";
 
     public static final String FIELD_NAME_TOTAL_RESOURCE = "totalResource";
 
@@ -98,59 +101,63 @@ public class TaskManagerInfo implements ResponseBody, Serializable {
     @JsonProperty(FIELD_NAME_MEMORY)
     private final TaskExecutorMemoryConfiguration memoryConfiguration;
 
-    @JsonCreator
-    public TaskManagerInfo(
-            @JsonDeserialize(using = ResourceIDDeserializer.class)
-                    @JsonProperty(FIELD_NAME_RESOURCE_ID)
-                    ResourceID resourceId,
-            @JsonProperty(FIELD_NAME_ADDRESS) String address,
-            @JsonProperty(FIELD_NAME_DATA_PORT) int dataPort,
-            @JsonProperty(FIELD_NAME_JMX_PORT) int jmxPort,
-            @JsonProperty(FIELD_NAME_LAST_HEARTBEAT) long lastHeartbeat,
-            @JsonProperty(FIELD_NAME_NUMBER_SLOTS) int numberSlots,
-            @JsonProperty(FIELD_NAME_NUMBER_AVAILABLE_SLOTS) int numberAvailableSlots,
-            @JsonProperty(FIELD_NAME_TOTAL_RESOURCE) ResourceProfileInfo totalResource,
-            @JsonProperty(FIELD_NAME_AVAILABLE_RESOURCE) ResourceProfileInfo freeResource,
-            @JsonProperty(FIELD_NAME_HARDWARE) HardwareDescription hardwareDescription,
-            @JsonProperty(FIELD_NAME_MEMORY) TaskExecutorMemoryConfiguration memoryConfiguration) {
-        this.resourceId = Preconditions.checkNotNull(resourceId);
-        this.address = Preconditions.checkNotNull(address);
-        this.dataPort = dataPort;
-        this.jmxPort = jmxPort;
-        this.lastHeartbeat = lastHeartbeat;
-        this.numberSlots = numberSlots;
-        this.numberAvailableSlots = numberAvailableSlots;
-        this.totalResource = totalResource;
-        this.freeResource = freeResource;
-        this.hardwareDescription = Preconditions.checkNotNull(hardwareDescription);
-        this.memoryConfiguration = Preconditions.checkNotNull(memoryConfiguration);
-    }
+	@JsonProperty(FIELD_NAME_STATUS_SLOTS)
+	private final SlotReportInfo slotStatusReport;
 
-    public TaskManagerInfo(
-            ResourceID resourceId,
-            String address,
-            int dataPort,
-            int jmxPort,
-            long lastHeartbeat,
-            int numberSlots,
-            int numberAvailableSlots,
-            ResourceProfile totalResource,
-            ResourceProfile freeResource,
-            HardwareDescription hardwareDescription,
-            TaskExecutorMemoryConfiguration memoryConfiguration) {
-        this(
-                resourceId,
-                address,
-                dataPort,
-                jmxPort,
-                lastHeartbeat,
-                numberSlots,
-                numberAvailableSlots,
-                ResourceProfileInfo.fromResrouceProfile(totalResource),
-                ResourceProfileInfo.fromResrouceProfile(freeResource),
-                hardwareDescription,
-                memoryConfiguration);
-    }
+	@JsonCreator
+	public TaskManagerInfo(
+			@JsonDeserialize(using = ResourceIDDeserializer.class) @JsonProperty(FIELD_NAME_RESOURCE_ID) ResourceID resourceId,
+			@JsonProperty(FIELD_NAME_ADDRESS) String address,
+			@JsonProperty(FIELD_NAME_DATA_PORT) int dataPort,
+			@JsonProperty(FIELD_NAME_JMX_PORT) int jmxPort,
+			@JsonProperty(FIELD_NAME_LAST_HEARTBEAT) long lastHeartbeat,
+			@JsonProperty(FIELD_NAME_NUMBER_SLOTS) int numberSlots,
+			@JsonProperty(FIELD_NAME_NUMBER_AVAILABLE_SLOTS) int numberAvailableSlots,
+			@JsonProperty(FIELD_NAME_TOTAL_RESOURCE) ResourceProfileInfo totalResource,
+			@JsonProperty(FIELD_NAME_AVAILABLE_RESOURCE) ResourceProfileInfo freeResource,
+			@JsonProperty(FIELD_NAME_HARDWARE) HardwareDescription hardwareDescription,
+			@JsonProperty(FIELD_NAME_MEMORY) TaskExecutorMemoryConfiguration memoryConfiguration,
+			@JsonProperty(FIELD_NAME_STATUS_SLOTS) SlotReportInfo slotStatusReport) {
+		this.resourceId = Preconditions.checkNotNull(resourceId);
+		this.address = Preconditions.checkNotNull(address);
+		this.dataPort = dataPort;
+		this.jmxPort = jmxPort;
+		this.lastHeartbeat = lastHeartbeat;
+		this.numberSlots = numberSlots;
+		this.numberAvailableSlots = numberAvailableSlots;
+		this.totalResource = totalResource;
+		this.freeResource = freeResource;
+		this.hardwareDescription = Preconditions.checkNotNull(hardwareDescription);
+		this.memoryConfiguration = Preconditions.checkNotNull(memoryConfiguration);
+		this.slotStatusReport = slotStatusReport;
+	}
+
+	public TaskManagerInfo(
+			ResourceID resourceId,
+			String address,
+			int dataPort,
+			int jmxPort,
+			long lastHeartbeat,
+			int numberSlots,
+			int numberAvailableSlots,
+			ResourceProfile totalResource,
+			ResourceProfile freeResource,
+			HardwareDescription hardwareDescription,
+			TaskExecutorMemoryConfiguration memoryConfiguration,
+			SlotReportInfo slotStatusReport) {
+		this(resourceId,
+			address,
+			dataPort,
+			jmxPort,
+			lastHeartbeat,
+			numberSlots,
+			numberAvailableSlots,
+			ResourceProfileInfo.fromResrouceProfile(totalResource),
+			ResourceProfileInfo.fromResrouceProfile(freeResource),
+			hardwareDescription,
+			memoryConfiguration,
+			slotStatusReport);
+	}
 
     public ResourceID getResourceId() {
         return resourceId;
@@ -196,41 +203,47 @@ public class TaskManagerInfo implements ResponseBody, Serializable {
         return memoryConfiguration;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        TaskManagerInfo that = (TaskManagerInfo) o;
-        return dataPort == that.dataPort
-                && jmxPort == that.jmxPort
-                && lastHeartbeat == that.lastHeartbeat
-                && numberSlots == that.numberSlots
-                && numberAvailableSlots == that.numberAvailableSlots
-                && Objects.equals(totalResource, that.totalResource)
-                && Objects.equals(freeResource, that.freeResource)
-                && Objects.equals(resourceId, that.resourceId)
-                && Objects.equals(address, that.address)
-                && Objects.equals(hardwareDescription, that.hardwareDescription)
-                && Objects.equals(memoryConfiguration, that.memoryConfiguration);
-    }
+	public SlotReportInfo getSlotStatusReport() {
+		return slotStatusReport;
+	}
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(
-                resourceId,
-                address,
-                dataPort,
-                jmxPort,
-                lastHeartbeat,
-                numberSlots,
-                numberAvailableSlots,
-                totalResource,
-                freeResource,
-                hardwareDescription,
-                memoryConfiguration);
-    }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		TaskManagerInfo that = (TaskManagerInfo) o;
+		return dataPort == that.dataPort &&
+			jmxPort == that.jmxPort &&
+			lastHeartbeat == that.lastHeartbeat &&
+			numberSlots == that.numberSlots &&
+			numberAvailableSlots == that.numberAvailableSlots &&
+			Objects.equals(totalResource, that.totalResource) &&
+			Objects.equals(freeResource, that.freeResource) &&
+			Objects.equals(resourceId, that.resourceId) &&
+			Objects.equals(address, that.address) &&
+			Objects.equals(hardwareDescription, that.hardwareDescription) &&
+			Objects.equals(memoryConfiguration, that.memoryConfiguration) &&
+			Objects.equals(slotStatusReport, that.slotStatusReport);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(
+			resourceId,
+			address,
+			dataPort,
+			jmxPort,
+			lastHeartbeat,
+			numberSlots,
+			numberAvailableSlots,
+			totalResource,
+			freeResource,
+			hardwareDescription,
+			memoryConfiguration,
+			slotStatusReport);
+	}
 }

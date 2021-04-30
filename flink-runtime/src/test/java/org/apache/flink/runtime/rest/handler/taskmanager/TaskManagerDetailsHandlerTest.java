@@ -37,6 +37,7 @@ import org.apache.flink.runtime.rest.messages.taskmanager.TaskManagerIdPathParam
 import org.apache.flink.runtime.rest.messages.taskmanager.TaskManagerInfo;
 import org.apache.flink.runtime.rest.messages.taskmanager.TaskManagerMessageParameters;
 import org.apache.flink.runtime.rest.messages.taskmanager.TaskManagerMetricsInfo;
+import org.apache.flink.runtime.taskexecutor.SlotReport;
 import org.apache.flink.runtime.taskexecutor.TaskExecutorMemoryConfiguration;
 import org.apache.flink.runtime.testingUtils.TestingUtils;
 import org.apache.flink.util.TestLogger;
@@ -159,20 +160,35 @@ public class TaskManagerDetailsHandlerTest extends TestLogger {
         metricStore.add(new MetricDump.CounterDump(tmScope, "Shuffle.Netty.TotalMemory", 20));
     }
 
-    private static TaskManagerInfo createEmptyTaskManagerInfo() {
-        return new TaskManagerInfo(
-                TASK_MANAGER_ID,
-                UUID.randomUUID().toString(),
-                0,
-                0,
-                0L,
-                0,
-                0,
-                ResourceProfile.ZERO,
-                ResourceProfile.ZERO,
-                new HardwareDescription(0, 0L, 0L, 0L),
-                new TaskExecutorMemoryConfiguration(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L));
-    }
+	private static TaskManagerInfo createEmptyTaskManagerInfo() {
+		return new TaskManagerInfo(
+			TASK_MANAGER_ID,
+			UUID.randomUUID().toString(),
+			0,
+			0,
+			0L,
+			0,
+			0,
+			ResourceProfile.ZERO,
+			ResourceProfile.ZERO,
+			new HardwareDescription(
+				0,
+				0L,
+				0L,
+				0L),
+			new TaskExecutorMemoryConfiguration(
+				0L,
+				0L,
+				0L,
+				0L,
+				0L,
+				0L,
+				0L,
+				0L,
+				0L,
+				0L),
+			new SlotReport().createSlotReportInfo());
+	}
 
     private static HandlerRequest<EmptyRequestBody, TaskManagerMessageParameters> createRequest()
             throws HandlerRequestException {

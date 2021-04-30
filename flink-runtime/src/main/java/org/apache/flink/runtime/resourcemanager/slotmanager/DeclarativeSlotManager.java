@@ -36,6 +36,7 @@ import org.apache.flink.runtime.slots.ResourceCounter;
 import org.apache.flink.runtime.slots.ResourceRequirement;
 import org.apache.flink.runtime.slots.ResourceRequirements;
 import org.apache.flink.runtime.taskexecutor.SlotReport;
+import org.apache.flink.runtime.taskexecutor.SlotReportInfo;
 import org.apache.flink.runtime.taskexecutor.SlotStatus;
 import org.apache.flink.runtime.taskexecutor.TaskExecutorGateway;
 import org.apache.flink.runtime.taskexecutor.exceptions.SlotOccupiedException;
@@ -176,9 +177,14 @@ public class DeclarativeSlotManager implements SlotManager {
         }
     }
 
-    // ---------------------------------------------------------------------------------------------
-    // Component lifecycle methods
-    // ---------------------------------------------------------------------------------------------
+	@Override
+	public SlotReportInfo getSlotStatusReport(InstanceID instanceID) {
+		return null;
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Component lifecycle methods
+	// ---------------------------------------------------------------------------------------------
 
     /**
      * Starts the slot manager with the given leader id and resource manager actions.

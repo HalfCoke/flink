@@ -37,6 +37,7 @@ import org.apache.flink.runtime.resourcemanager.exceptions.UnfulfillableSlotRequ
 import org.apache.flink.runtime.resourcemanager.registration.TaskExecutorConnection;
 import org.apache.flink.runtime.slots.ResourceRequirements;
 import org.apache.flink.runtime.taskexecutor.SlotReport;
+import org.apache.flink.runtime.taskexecutor.SlotReportInfo;
 import org.apache.flink.runtime.taskexecutor.SlotStatus;
 import org.apache.flink.runtime.taskexecutor.TaskExecutorGateway;
 import org.apache.flink.runtime.taskexecutor.exceptions.SlotAllocationException;
@@ -148,10 +149,12 @@ public class SlotManagerImpl implements SlotManager {
 
     private final SlotManagerMetricGroup slotManagerMetricGroup;
 
-    public SlotManagerImpl(
-            ScheduledExecutor scheduledExecutor,
-            SlotManagerConfiguration slotManagerConfiguration,
-            SlotManagerMetricGroup slotManagerMetricGroup) {
+	private final HashMap<InstanceID, SlotReport> slotStatusReport;
+
+	public SlotManagerImpl(
+			ScheduledExecutor scheduledExecutor,
+			SlotManagerConfiguration slotManagerConfiguration,
+			SlotManagerMetricGroup slotManagerMetricGroup) {
 
         this.scheduledExecutor = Preconditions.checkNotNull(scheduledExecutor);
 
@@ -183,8 +186,10 @@ public class SlotManagerImpl implements SlotManager {
         taskManagerTimeoutsAndRedundancyCheck = null;
         slotRequestTimeoutCheck = null;
 
-        started = false;
-    }
+		started = false;
+
+		slotStatusReport = new HashMap<>();
+	}
 
     @Override
     public int getNumberRegisteredSlots() {
@@ -273,9 +278,13 @@ public class SlotManagerImpl implements SlotManager {
                         .count();
     }
 
-    // ---------------------------------------------------------------------------------------------
-    // Component lifecycle methods
-    // ---------------------------------------------------------------------------------------------
+	public SlotReportInfo getSlotStatusReport(InstanceID instanceID) {
+		return slotStatusReport.get(instanceID) == null ? null : slotStatusReport.get(instanceID).createSlotReportInfo();
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Component lifecycle methods
+	// ---------------------------------------------------------------------------------------------
 
     /**
      * Starts the slot manager with the given leader id and resource manager actions.
@@ -545,15 +554,12 @@ public class SlotManagerImpl implements SlotManager {
 
         TaskManagerRegistration taskManagerRegistration = taskManagerRegistrations.get(instanceId);
 
-        if (null != taskManagerRegistration) {
-            LOG.debug("Received slot report from instance {}: {}.", instanceId, slotReport);
-
-            for (SlotStatus slotStatus : slotReport) {
-                updateSlot(
-                        slotStatus.getSlotID(),
-                        slotStatus.getAllocationID(),
-                        slotStatus.getJobID());
-            }
+		if (null != taskManagerRegistration) {
+			LOG.debug("Received slot report from instance {}: {}.", instanceId, slotReport);
+			slotStatusReport.put(instanceId, slotReport);
+			for (SlotStatus slotStatus : slotReport) {
+				updateSlot(slotStatus.getSlotID(), slotStatus.getAllocationID(), slotStatus.getJobID());
+			}
 
             return true;
         } else {

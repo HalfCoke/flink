@@ -652,20 +652,21 @@ public abstract class ResourceManager<WorkerType extends ResourceIDRetrievable>
             final ResourceID resourceId = taskExecutorEntry.getKey();
             final WorkerRegistration<WorkerType> taskExecutor = taskExecutorEntry.getValue();
 
-            taskManagerInfos.add(
-                    new TaskManagerInfo(
-                            resourceId,
-                            taskExecutor.getTaskExecutorGateway().getAddress(),
-                            taskExecutor.getDataPort(),
-                            taskExecutor.getJmxPort(),
-                            taskManagerHeartbeatManager.getLastHeartbeatFrom(resourceId),
-                            slotManager.getNumberRegisteredSlotsOf(taskExecutor.getInstanceID()),
-                            slotManager.getNumberFreeSlotsOf(taskExecutor.getInstanceID()),
-                            slotManager.getRegisteredResourceOf(taskExecutor.getInstanceID()),
-                            slotManager.getFreeResourceOf(taskExecutor.getInstanceID()),
-                            taskExecutor.getHardwareDescription(),
-                            taskExecutor.getMemoryConfiguration()));
-        }
+			taskManagerInfos.add(
+				new TaskManagerInfo(
+					resourceId,
+					taskExecutor.getTaskExecutorGateway().getAddress(),
+					taskExecutor.getDataPort(),
+					taskExecutor.getJmxPort(),
+					taskManagerHeartbeatManager.getLastHeartbeatFrom(resourceId),
+					slotManager.getNumberRegisteredSlotsOf(taskExecutor.getInstanceID()),
+					slotManager.getNumberFreeSlotsOf(taskExecutor.getInstanceID()),
+					slotManager.getRegisteredResourceOf(taskExecutor.getInstanceID()),
+					slotManager.getFreeResourceOf(taskExecutor.getInstanceID()),
+					taskExecutor.getHardwareDescription(),
+					taskExecutor.getMemoryConfiguration(),
+					slotManager.getSlotStatusReport(taskExecutor.getInstanceID())));
+		}
 
         return CompletableFuture.completedFuture(taskManagerInfos);
     }
@@ -676,23 +677,23 @@ public abstract class ResourceManager<WorkerType extends ResourceIDRetrievable>
 
         final WorkerRegistration<WorkerType> taskExecutor = taskExecutors.get(resourceId);
 
-        if (taskExecutor == null) {
-            return FutureUtils.completedExceptionally(new UnknownTaskExecutorException(resourceId));
-        } else {
-            final InstanceID instanceId = taskExecutor.getInstanceID();
-            final TaskManagerInfo taskManagerInfo =
-                    new TaskManagerInfo(
-                            resourceId,
-                            taskExecutor.getTaskExecutorGateway().getAddress(),
-                            taskExecutor.getDataPort(),
-                            taskExecutor.getJmxPort(),
-                            taskManagerHeartbeatManager.getLastHeartbeatFrom(resourceId),
-                            slotManager.getNumberRegisteredSlotsOf(instanceId),
-                            slotManager.getNumberFreeSlotsOf(instanceId),
-                            slotManager.getRegisteredResourceOf(instanceId),
-                            slotManager.getFreeResourceOf(instanceId),
-                            taskExecutor.getHardwareDescription(),
-                            taskExecutor.getMemoryConfiguration());
+		if (taskExecutor == null) {
+			return FutureUtils.completedExceptionally(new UnknownTaskExecutorException(resourceId));
+		} else {
+			final InstanceID instanceId = taskExecutor.getInstanceID();
+			final TaskManagerInfo taskManagerInfo = new TaskManagerInfo(
+				resourceId,
+				taskExecutor.getTaskExecutorGateway().getAddress(),
+				taskExecutor.getDataPort(),
+				taskExecutor.getJmxPort(),
+				taskManagerHeartbeatManager.getLastHeartbeatFrom(resourceId),
+				slotManager.getNumberRegisteredSlotsOf(instanceId),
+				slotManager.getNumberFreeSlotsOf(instanceId),
+				slotManager.getRegisteredResourceOf(instanceId),
+				slotManager.getFreeResourceOf(instanceId),
+				taskExecutor.getHardwareDescription(),
+				taskExecutor.getMemoryConfiguration(),
+				slotManager.getSlotStatusReport(taskExecutor.getInstanceID()));
 
             return CompletableFuture.completedFuture(taskManagerInfo);
         }
