@@ -265,9 +265,11 @@ public class JobDetailsInfo implements ResponseBody {
 
         public static final String FIELD_NAME_JOB_VERTEX_METRICS = "metrics";
 
-        @JsonProperty(FIELD_NAME_JOB_VERTEX_ID)
-        @JsonSerialize(using = JobVertexIDSerializer.class)
-        private final JobVertexID jobVertexID;
+		public static final String FIELD_NAME_JOB_VERTEX_SUB_TASKS = "subtasks";
+
+		@JsonProperty(FIELD_NAME_JOB_VERTEX_ID)
+		@JsonSerialize(using = JobVertexIDSerializer.class)
+		private final JobVertexID jobVertexID;
 
         @JsonProperty(FIELD_NAME_JOB_VERTEX_NAME)
         private final String name;
@@ -293,29 +295,31 @@ public class JobDetailsInfo implements ResponseBody {
         @JsonProperty(FIELD_NAME_JOB_VERTEX_METRICS)
         private final IOMetricsInfo jobVertexMetrics;
 
+		@JsonProperty(FIELD_NAME_JOB_VERTEX_SUB_TASKS)
+		private final Collection<SubtaskInfo> jobVertexSubTasks;
+
         @JsonCreator
-        public JobVertexDetailsInfo(
-                @JsonDeserialize(using = JobVertexIDDeserializer.class)
-                        @JsonProperty(FIELD_NAME_JOB_VERTEX_ID)
-                        JobVertexID jobVertexID,
-                @JsonProperty(FIELD_NAME_JOB_VERTEX_NAME) String name,
-                @JsonProperty(FIELD_NAME_PARALLELISM) int parallelism,
-                @JsonProperty(FIELD_NAME_JOB_VERTEX_STATE) ExecutionState executionState,
-                @JsonProperty(FIELD_NAME_JOB_VERTEX_START_TIME) long startTime,
-                @JsonProperty(FIELD_NAME_JOB_VERTEX_END_TIME) long endTime,
-                @JsonProperty(FIELD_NAME_JOB_VERTEX_DURATION) long duration,
-                @JsonProperty(FIELD_NAME_TASKS_PER_STATE)
-                        Map<ExecutionState, Integer> tasksPerState,
-                @JsonProperty(FIELD_NAME_JOB_VERTEX_METRICS) IOMetricsInfo jobVertexMetrics) {
-            this.jobVertexID = Preconditions.checkNotNull(jobVertexID);
-            this.name = Preconditions.checkNotNull(name);
-            this.parallelism = parallelism;
-            this.executionState = Preconditions.checkNotNull(executionState);
-            this.startTime = startTime;
-            this.endTime = endTime;
-            this.duration = duration;
-            this.tasksPerState = Preconditions.checkNotNull(tasksPerState);
-            this.jobVertexMetrics = Preconditions.checkNotNull(jobVertexMetrics);
+		public JobVertexDetailsInfo(
+				@JsonDeserialize(using = JobVertexIDDeserializer.class) @JsonProperty(FIELD_NAME_JOB_VERTEX_ID) JobVertexID jobVertexID,
+				@JsonProperty(FIELD_NAME_JOB_VERTEX_NAME) String name,
+				@JsonProperty(FIELD_NAME_PARALLELISM) int parallelism,
+				@JsonProperty(FIELD_NAME_JOB_VERTEX_STATE) ExecutionState executionState,
+				@JsonProperty(FIELD_NAME_JOB_VERTEX_START_TIME) long startTime,
+				@JsonProperty(FIELD_NAME_JOB_VERTEX_END_TIME) long endTime,
+				@JsonProperty(FIELD_NAME_JOB_VERTEX_DURATION) long duration,
+				@JsonProperty(FIELD_NAME_TASKS_PER_STATE) Map<ExecutionState, Integer> tasksPerState,
+				@JsonProperty(FIELD_NAME_JOB_VERTEX_METRICS) IOMetricsInfo jobVertexMetrics,
+                @JsonProperty(FIELD_NAME_JOB_VERTEX_SUB_TASKS) Collection<SubtaskInfo> jobVertexSubTasks) {
+			this.jobVertexID = Preconditions.checkNotNull(jobVertexID);
+			this.name = Preconditions.checkNotNull(name);
+			this.parallelism = parallelism;
+			this.executionState = Preconditions.checkNotNull(executionState);
+			this.startTime = startTime;
+			this.endTime = endTime;
+			this.duration = duration;
+			this.tasksPerState = Preconditions.checkNotNull(tasksPerState);
+			this.jobVertexMetrics = Preconditions.checkNotNull(jobVertexMetrics);
+			this.jobVertexSubTasks = jobVertexSubTasks;
         }
 
         @JsonIgnore
@@ -353,48 +357,46 @@ public class JobDetailsInfo implements ResponseBody {
             return duration;
         }
 
-        @JsonIgnore
-        public Map<ExecutionState, Integer> getTasksPerState() {
-            return tasksPerState;
-        }
+		@JsonIgnore
+		public Collection<SubtaskInfo> getJobVertexSubTasks() {
+			return jobVertexSubTasks;
+		}
+
+		@JsonIgnore
+		public Map<ExecutionState, Integer> getTasksPerState() {
+			return tasksPerState;
+		}
 
         @JsonIgnore
         public IOMetricsInfo getJobVertexMetrics() {
             return jobVertexMetrics;
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            JobVertexDetailsInfo that = (JobVertexDetailsInfo) o;
-            return parallelism == that.parallelism
-                    && startTime == that.startTime
-                    && endTime == that.endTime
-                    && duration == that.duration
-                    && Objects.equals(jobVertexID, that.jobVertexID)
-                    && Objects.equals(name, that.name)
-                    && executionState == that.executionState
-                    && Objects.equals(tasksPerState, that.tasksPerState)
-                    && Objects.equals(jobVertexMetrics, that.jobVertexMetrics);
-        }
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			JobVertexDetailsInfo that = (JobVertexDetailsInfo) o;
+			return parallelism == that.parallelism &&
+				startTime == that.startTime &&
+				endTime == that.endTime &&
+				duration == that.duration &&
+				Objects.equals(jobVertexID, that.jobVertexID) &&
+				Objects.equals(name, that.name) &&
+				executionState == that.executionState &&
+				Objects.equals(tasksPerState, that.tasksPerState) &&
+				Objects.equals(jobVertexMetrics, that.jobVertexMetrics) &&
+				Objects.equals(jobVertexSubTasks, that.jobVertexSubTasks);
+		}
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(
-                    jobVertexID,
-                    name,
-                    parallelism,
-                    executionState,
-                    startTime,
-                    endTime,
-                    duration,
-                    tasksPerState,
-                    jobVertexMetrics);
-        }
-    }
+		@Override
+		public int hashCode() {
+			return Objects.hash(jobVertexID, name, parallelism, executionState, startTime, endTime, duration, tasksPerState, jobVertexMetrics, jobVertexSubTasks);
+		}
+	}
+
 }

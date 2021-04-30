@@ -99,7 +99,9 @@ public class ExecutionVertex
 
     private final ArrayList<InputSplit> inputSplits;
 
-    // --------------------------------------------------------------------------------------------
+	private LogicalSlot allocatedSlot;
+
+	// --------------------------------------------------------------------------------------------
 
     /**
      * Creates an ExecutionVertex.
@@ -184,9 +186,17 @@ public class ExecutionVertex
         return this.jobVertex.getJobVertexId();
     }
 
-    public String getTaskName() {
-        return this.jobVertex.getJobVertex().getName();
-    }
+	public LogicalSlot getAllocatedSlot() {
+		return this.allocatedSlot;
+	}
+
+	public void setAllocatedSlot(LogicalSlot allocatedSlot) {
+		this.allocatedSlot = allocatedSlot;
+	}
+
+	public String getTaskName() {
+		return this.jobVertex.getJobVertex().getName();
+	}
 
     /**
      * Creates a simple name representation in the style 'taskname (x/y)', where 'taskname' is the

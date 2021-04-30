@@ -18,6 +18,8 @@
 package org.apache.flink.runtime.executiongraph;
 
 import org.apache.flink.runtime.execution.ExecutionState;
+import org.apache.flink.runtime.jobmaster.LogicalSlot;
+import org.apache.flink.runtime.scheduler.strategy.ExecutionVertexID;
 import org.apache.flink.runtime.taskmanager.TaskManagerLocation;
 import org.apache.flink.runtime.util.EvictingBoundedList;
 
@@ -38,14 +40,20 @@ public class ArchivedExecutionVertex implements AccessExecutionVertex, Serializa
 
     private final ArchivedExecution currentExecution; // this field must never be null
 
-    // ------------------------------------------------------------------------
+	private LogicalSlot allocatedSlot;
 
-    public ArchivedExecutionVertex(ExecutionVertex vertex) {
-        this.subTaskIndex = vertex.getParallelSubtaskIndex();
-        this.priorExecutions = vertex.getCopyOfPriorExecutionsList();
-        this.taskNameWithSubtask = vertex.getTaskNameWithSubtaskIndex();
-        this.currentExecution = vertex.getCurrentExecutionAttempt().archive();
-    }
+	private ExecutionJobVertex jobVertex;
+
+	// ------------------------------------------------------------------------
+
+	public ArchivedExecutionVertex(ExecutionVertex vertex) {
+		this.subTaskIndex = vertex.getParallelSubtaskIndex();
+		this.priorExecutions = vertex.getCopyOfPriorExecutionsList();
+		this.taskNameWithSubtask = vertex.getTaskNameWithSubtaskIndex();
+		this.currentExecution = vertex.getCurrentExecutionAttempt().archive();
+		this.allocatedSlot = vertex.getAllocatedSlot();
+		this.jobVertex = vertex.getJobVertex();
+	}
 
     public ArchivedExecutionVertex(
             int subTaskIndex,
@@ -87,23 +95,39 @@ public class ArchivedExecutionVertex implements AccessExecutionVertex, Serializa
         return currentExecution.getStateTimestamp(state);
     }
 
-    @Override
-    public String getFailureCauseAsString() {
-        return currentExecution.getFailureCauseAsString();
-    }
+	@Override
+	public String getFailureCauseAsString() {
+		return currentExecution.getFailureCauseAsString();
+	}
 
     @Override
     public TaskManagerLocation getCurrentAssignedResourceLocation() {
         return currentExecution.getAssignedResourceLocation();
     }
 
-    @Nullable
-    @Override
-    public ArchivedExecution getPriorExecutionAttempt(int attemptNumber) {
-        if (attemptNumber >= 0 && attemptNumber < priorExecutions.size()) {
-            return priorExecutions.get(attemptNumber);
-        } else {
-            throw new IllegalArgumentException("attempt does not exist");
-        }
-    }
+	@Nullable
+	@Override
+	public ArchivedExecution getPriorExecutionAttempt(int attemptNumber) {
+		if (attemptNumber >= 0 && attemptNumber < priorExecutions.size()) {
+			return priorExecutions.get(attemptNumber);
+		} else {
+			throw new IllegalArgumentException("attempt does not exist");
+		}
+	}
+
+	public LogicalSlot getAllocatedSlot() {
+		return this.allocatedSlot;
+	}
+
+	public void setAllocatedSlot(LogicalSlot allocatedSlot) {
+		this.allocatedSlot = allocatedSlot;
+	}
+
+	public ExecutionJobVertex getJobVertex() {
+		return jobVertex;
+	}
+
+	public ExecutionVertexID getID() {
+		return new ExecutionVertexID(jobVertex.getJobVertexId(), subTaskIndex);
+	}
 }

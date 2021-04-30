@@ -805,13 +805,8 @@ public class Execution
                 return;
             }
 
-            LOG.info(
-                    "Deploying {} (attempt #{}) with attempt id {} to {} with allocation id {}",
-                    vertex.getTaskNameWithSubtaskIndex(),
-                    attemptNumber,
-                    vertex.getCurrentExecutionAttempt().getAttemptId(),
-                    getAssignedResourceLocation(),
-                    slot.getAllocationId());
+			LOG.info("Deploying {} (id {}) (attempt #{}) with attempt id {} to {} with allocation id {}", vertex.getTaskNameWithSubtaskIndex(),vertex.getID(),
+				attemptNumber, vertex.getCurrentExecutionAttempt().getAttemptId(), getAssignedResourceLocation(), slot.getAllocationId());
 
             if (taskRestore != null) {
                 checkState(
@@ -847,24 +842,19 @@ public class Execution
             final ComponentMainThreadExecutor jobMasterMainThreadExecutor =
                     vertex.getExecutionGraph().getJobMasterMainThreadExecutor();
 
-            getVertex().notifyPendingDeployment(this);
-            // We run the submission in the future executor so that the serialization of large TDDs
-            // does not block
-            // the main thread and sync back to the main thread once submission is completed.
-            CompletableFuture.supplyAsync(
-                            () -> taskManagerGateway.submitTask(deployment, rpcTimeout), executor)
-                    .thenCompose(Function.identity())
-                    .whenCompleteAsync(
-                            (ack, failure) -> {
-                                if (failure == null) {
-                                    vertex.notifyCompletedDeployment(this);
-                                } else {
-                                    if (failure instanceof TimeoutException) {
-                                        String taskname =
-                                                vertex.getTaskNameWithSubtaskIndex()
-                                                        + " ("
-                                                        + attemptId
-                                                        + ')';
+			getVertex().notifyPendingDeployment(this);
+			// We run the submission in the future executor so that the serialization of large TDDs does not block
+			// the main thread and sync back to the main thread once submission is completed.
+			CompletableFuture.supplyAsync(() -> taskManagerGateway.submitTask(deployment, rpcTimeout), executor)
+				.thenCompose(Function.identity())
+				.whenCompleteAsync(
+					(ack, failure) -> {
+						if (failure == null) {
+							vertex.notifyCompletedDeployment(this);
+							vertex.setAllocatedSlot(slot);
+						} else {
+							if (failure instanceof TimeoutException) {
+								String taskname = vertex.getTaskNameWithSubtaskIndex() + " (" + attemptId + ')';
 
                                         markFailed(
                                                 new Exception(

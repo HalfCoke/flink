@@ -25,7 +25,9 @@ import org.apache.flink.runtime.execution.ExecutionState;
 import org.apache.flink.runtime.executiongraph.AccessExecutionGraph;
 import org.apache.flink.runtime.executiongraph.AccessExecutionJobVertex;
 import org.apache.flink.runtime.executiongraph.AccessExecutionVertex;
+import org.apache.flink.runtime.executiongraph.ArchivedExecutionVertex;
 import org.apache.flink.runtime.executiongraph.ExecutionJobVertex;
+import org.apache.flink.runtime.executiongraph.ExecutionVertex;
 import org.apache.flink.runtime.rest.handler.HandlerRequest;
 import org.apache.flink.runtime.rest.handler.RestHandlerException;
 import org.apache.flink.runtime.rest.handler.legacy.ExecutionGraphCache;
@@ -37,6 +39,7 @@ import org.apache.flink.runtime.rest.messages.JobMessageParameters;
 import org.apache.flink.runtime.rest.messages.MessageHeaders;
 import org.apache.flink.runtime.rest.messages.ResponseBody;
 import org.apache.flink.runtime.rest.messages.job.JobDetailsInfo;
+import org.apache.flink.runtime.rest.messages.job.SubtaskInfo;
 import org.apache.flink.runtime.rest.messages.job.metrics.IOMetricsInfo;
 import org.apache.flink.runtime.webmonitor.RestfulGateway;
 import org.apache.flink.runtime.webmonitor.history.ArchivedJson;
@@ -61,21 +64,22 @@ public class JobDetailsHandler
 
     private final MetricFetcher metricFetcher;
 
-    public JobDetailsHandler(
-            GatewayRetriever<? extends RestfulGateway> leaderRetriever,
-            Time timeout,
-            Map<String, String> responseHeaders,
-            MessageHeaders<EmptyRequestBody, JobDetailsInfo, JobMessageParameters> messageHeaders,
-            ExecutionGraphCache executionGraphCache,
-            Executor executor,
-            MetricFetcher metricFetcher) {
-        super(
-                leaderRetriever,
-                timeout,
-                responseHeaders,
-                messageHeaders,
-                executionGraphCache,
-                executor);
+
+	public JobDetailsHandler(
+			GatewayRetriever<? extends RestfulGateway> leaderRetriever,
+			Time timeout,
+			Map<String, String> responseHeaders,
+			MessageHeaders<EmptyRequestBody, JobDetailsInfo, JobMessageParameters> messageHeaders,
+			ExecutionGraphCache executionGraphCache,
+			Executor executor,
+			MetricFetcher metricFetcher) {
+		super(
+			leaderRetriever,
+			timeout,
+			responseHeaders,
+			messageHeaders,
+			executionGraphCache,
+			executor);
 
         this.metricFetcher = Preconditions.checkNotNull(metricFetcher);
     }
@@ -155,12 +159,16 @@ public class JobDetailsHandler
                 executionGraph.getJsonPlan());
     }
 
-    private static JobDetailsInfo.JobVertexDetailsInfo createJobVertexDetailsInfo(
-            AccessExecutionJobVertex ejv, long now, JobID jobId, MetricFetcher metricFetcher) {
-        int[] tasksPerState = new int[ExecutionState.values().length];
-        long startTime = Long.MAX_VALUE;
-        long endTime = 0;
-        boolean allFinished = true;
+	private static JobDetailsInfo.JobVertexDetailsInfo createJobVertexDetailsInfo(
+			AccessExecutionJobVertex ejv,
+			long now,
+			JobID jobId,
+			MetricFetcher metricFetcher) {
+		int[] tasksPerState = new int[ExecutionState.values().length];
+		long startTime = Long.MAX_VALUE;
+		long endTime = 0;
+		boolean allFinished = true;
+		Collection<SubtaskInfo> subtaskInfos = new ArrayList<>(ejv.getParallelism());
 
         for (AccessExecutionVertex vertex : ejv.getTaskVertices()) {
             final ExecutionState state = vertex.getExecutionState();
@@ -172,9 +180,26 @@ public class JobDetailsHandler
                 startTime = Math.min(startTime, started);
             }
 
-            allFinished &= state.isTerminal();
-            endTime = Math.max(endTime, vertex.getStateTimestamp(state));
-        }
+			allFinished &= state.isTerminal();
+			endTime = Math.max(endTime, vertex.getStateTimestamp(state));
+			try{
+				if (vertex instanceof ExecutionVertex){
+					subtaskInfos.add(new SubtaskInfo(
+						((ExecutionVertex) vertex).getID().toString(),
+						((ExecutionVertex) vertex).getAllocatedSlot().getAllocationId().toHexString()
+					));
+				} else if (vertex instanceof ArchivedExecutionVertex){
+					subtaskInfos.add(new SubtaskInfo(
+						((ArchivedExecutionVertex) vertex).getID().toString(),
+						((ArchivedExecutionVertex) vertex).getAllocatedSlot().getAllocationId().toHexString()
+					));
+				}
+			}catch (Exception e){
+				e.printStackTrace();
+				System.out.println("类型转换错误："+vertex.getClass());
+			}
+
+		}
 
         long duration;
         if (startTime < Long.MAX_VALUE) {
@@ -220,15 +245,16 @@ public class JobDetailsHandler
                         counts.getNumRecordsOut(),
                         counts.isNumRecordsOutComplete());
 
-        return new JobDetailsInfo.JobVertexDetailsInfo(
-                ejv.getJobVertexId(),
-                ejv.getName(),
-                ejv.getParallelism(),
-                jobVertexState,
-                startTime,
-                endTime,
-                duration,
-                tasksPerStateMap,
-                jobVertexMetrics);
-    }
+		return new JobDetailsInfo.JobVertexDetailsInfo(
+			ejv.getJobVertexId(),
+			ejv.getName(),
+			ejv.getParallelism(),
+			jobVertexState,
+			startTime,
+			endTime,
+			duration,
+			tasksPerStateMap,
+			jobVertexMetrics,
+			subtaskInfos);
+	}
 }
